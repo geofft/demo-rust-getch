@@ -1,0 +1,7 @@
+[package]
+name = "getch"
+version = "0.1.0"
+authors = ["Geoffrey Thomas <geofft@ldpreload.com>"]
+
+[dependencies]
+nix = "*"
