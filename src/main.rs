@@ -3,15 +3,16 @@ use nix::sys::termios;
 use std::io::Read;
 
 fn main() {
-    let saved_term = termios::tcgetattr(0).unwrap();
-    let mut term = saved_term;
+    // Querying original as a separate, since `Termios` does not implement copy
+    let orig_term = termios::tcgetattr(0).unwrap();
+    let mut term = termios::tcgetattr(0).unwrap();
     // Unset canonical mode, so we get characters immediately
-    term.c_lflag.remove(termios::ICANON);
+    term.local_flags.remove(termios::LocalFlags::ICANON);
     // Don't generate signals on Ctrl-C and friends
-    term.c_lflag.remove(termios::ISIG);
+    term.local_flags.remove(termios::LocalFlags::ISIG);
     // Disable local echo
-    term.c_lflag.remove(termios::ECHO);
-    termios::tcsetattr(0, termios::TCSADRAIN, &term).unwrap();
+    term.local_flags.remove(termios::LocalFlags::ECHO);
+    termios::tcsetattr(0, termios::SetArg::TCSADRAIN, &term).unwrap();
     println!("Press Ctrl-C to quit");
     for byte in std::io::stdin().bytes() {
         let byte = byte.unwrap();
@@ -22,5 +23,5 @@ fn main() {
         }
     }
     println!("Goodbye!");
-    termios::tcsetattr(0, termios::TCSADRAIN, &saved_term).unwrap();
+    termios::tcsetattr(0, termios::SetArg::TCSADRAIN, &orig_term).unwrap();
 }
